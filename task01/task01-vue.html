@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>IFE JavaScript Task 01</title>
+    <script src="vue-for-dev.js"></script>
+  </head>
+<body>
+<div id="app">请输入北京今天空气质量：
+  <input v-model="inputMessage">
+  <button v-on:click="passMsg">确认填写</button>
+
+  <p>您输入的值是:<span>{{ message }}</span></p>
+</div>
+<script type="text/javascript">
+	var vm = new Vue({
+	  el: '#app',
+	  data: {
+	    inputMessage: '',
+      message: '尚无输入'
+	  },
+    methods: {
+      passMsg: function () {
+        this.message = this.inputMessage;
+      }
+    }
+	})
+</script>
+</body>
+</html>
