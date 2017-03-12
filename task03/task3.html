@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>IFE JavaScript Task 03</title>
+  </head>
+<body>
+  <h3>污染城市列表</h3>
+  <ul id="source" style="width: 350px;">
+    <li>北京空气质量：<b>90</b></li>
+    <li>上海空气质量：<b>70</b></li>
+    <li>天津空气质量：<b>80</b></li>
+    <li>广州空气质量：<b>50</b></li>
+    <li>深圳空气质量：<b>40</b></li>
+    <li>福州空气质量：<b>32</b></li>
+    <li>成都空气质量：<b>90</b></li>
+  </ul>
+  <button id="sort-btn">排序</button>
+  <ul id="resort" style="width: 350px;">
+      <!--
+      <li>第一名：北京空气质量：<b>90</b></li>
+      <li>第二名：北京空气质量：<b>90</b></li>
+      <li>第三名：北京空气质量：<b>90</b></li>
+       -->
+  </ul>
+<script>
+  ;(function () {
+    'use strict';
+
+    var sourceNode = document.getElementById('source')
+    /*
+     data = [
+     ["北京", "90"],
+     ["北京", "90"]
+     ……
+     ]
+     */
+    // innerHTML；巧用split将字符串转为数组
+    // 输入sourceNode，输出data
+    function getData (sourceNode) {
+      var LiArr = sourceNode.getElementsByTagName('li')
+      var resultArr = []
+      for (var i = 0; i < LiArr.length; i++) {
+        var CityName = LiArr[i].innerHTML.slice(0, 2)
+        var bNumStr = LiArr[i].lastChild.innerHTML
+        resultArr[i] = (CityName + ',' + bNumStr).split(',')
+      }
+      // ;console.log(resultArr)
+      return resultArr
+    }
+    var sortedArr = getData(sourceNode).sort(function (a, b) {
+      return Number(a[1]) - Number(b[1])
+    })
+    function mapData (arr) {
+      var resultStr = ''
+      var tempStr = ''
+      for (var i = 0; i < arr.length; i++) {
+        tempStr = '<li>第' + (i + 1) + '名：' + arr[i][0]
+        + '空气质量：<b>' + arr[i][1] + '</b></li>'
+
+        resultStr += tempStr
+      }
+      return resultStr
+    }
+
+    var btn = document.getElementById('sort-btn')
+    addEvent(btn, 'click', function () {
+      var targetUl = document.getElementById('resort')
+      targetUl.innerHTML = mapData(sortedArr)
+    })
+
+    // addEvent() polyfill 兼容到ie8
+    function addEvent (element, type, handler) {
+      if (!handler.$$guid) handler.$$guid = addEvent.guid++
+      if (!element.events) element.events = {}
+      var handlers = element.events[type]
+      if (!handlers) {
+        handlers = element.events[type] = {}
+        if (element['on' + type]) {
+          handlers[0] = element['on' + type]
+        }
+      }
+      handlers[handler.$$guid] = handler
+      element['on' + type] = handleEvent
+    }
+    addEvent.guid = 1
+
+    function removeEvent (element, type, handler) {
+      if (element.events && element.events[type]) {
+        delete element.events[type][handler.$$guid]
+      }
+    }
+
+    function handleEvent (event) {
+      var returnValue = true
+      event = event || fixEvent(window.event)
+      var handlers = this.events[event.type]
+      for (var i in handlers) {
+        this.$$handleEvent = handlers[i]
+        if (this.$$handleEvent(event) === false) {
+          returnValue = false
+        }
+      }
+      return returnValue
+    }
+
+    function fixEvent (event) {
+      event.preventDefault = fixEvent.preventDefault
+      event.stopPropagation = fixEvent.stopPropagation
+      return event
+    }
+    fixEvent.preventDefault = function () {
+      this.returnValue = false
+    }
+    fixEvent.stopPropagation = function () {
+      this.cancelBubble = true
+    }
+  })()
+</script>
+</body>
+</html>
