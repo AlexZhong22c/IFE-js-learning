@@ -26,7 +26,7 @@
 <script>
   ;(function () {
     'use strict';
-
+    // 兼容到ie5左右
     var sourceNode = document.getElementById('source')
     /*
      data = [
@@ -42,7 +42,8 @@
       var resultArr = []
       for (var i = 0; i < LiArr.length; i++) {
         var CityName = LiArr[i].innerHTML.slice(0, 2)
-        var bNumStr = LiArr[i].lastChild.innerHTML
+        var bNumStr = LiArr[i].children[0].innerHTML
+        console.log(bNumStr)
         resultArr[i] = (CityName + ',' + bNumStr).split(',')
       }
       // ;console.log(resultArr)
@@ -57,19 +58,16 @@
       for (var i = 0; i < arr.length; i++) {
         tempStr = '<li>第' + (i + 1) + '名：' + arr[i][0]
         + '空气质量：<b>' + arr[i][1] + '</b></li>'
-
         resultStr += tempStr
       }
       return resultStr
     }
-
     var btn = document.getElementById('sort-btn')
     addEvent(btn, 'click', function () {
       var targetUl = document.getElementById('resort')
       targetUl.innerHTML = mapData(sortedArr)
     })
-
-    // addEvent() polyfill 兼容到ie8
+    // addEvent() polyfill
     function addEvent (element, type, handler) {
       if (!handler.$$guid) handler.$$guid = addEvent.guid++
       if (!element.events) element.events = {}
@@ -84,13 +82,11 @@
       element['on' + type] = handleEvent
     }
     addEvent.guid = 1
-
     function removeEvent (element, type, handler) {
       if (element.events && element.events[type]) {
         delete element.events[type][handler.$$guid]
       }
     }
-
     function handleEvent (event) {
       var returnValue = true
       event = event || fixEvent(window.event)
@@ -103,7 +99,6 @@
       }
       return returnValue
     }
-
     function fixEvent (event) {
       event.preventDefault = fixEvent.preventDefault
       event.stopPropagation = fixEvent.stopPropagation

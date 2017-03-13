@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>IFE JavaScript Task 04</title>
+    <style type="text/css">
+      button {
+          cursor:pointer;
+      }
+      #sequence {
+        margin-top:20px;
+        font-size: 18px;
+      }
+      #sequence span {
+        /*width: 10px;*/
+        /*height: 10px;*/
+        padding: 10px 10px;
+        background-color: red;
+        margin-left:10px;
+        cursor:pointer;
+      }
+    </style>
+  </head>
+<body>
+  <div>
+    <input type="text" id="textIn"/>
+    <button onclick="insertLeft()">左侧入</button>
+    <button onclick="insertRight()">右侧入</button>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <button onclick="removeLeft()">左侧出</button>
+    <button onclick="removeRight()">右侧出</button>
+    <!-- 操作下面的sequence时用到了chirdren,在ie6-ie8里面会包括评论节点 -->
+    <div id="sequence">
+        <span>11</span>
+        <span>12</span>
+        <span>13</span>
+    </div>
+  </div>
+<script>
+  'use strict';
+  // 发现target不对劲，补了一个target = e.target || e.srcElement
+  // 兼容到ie5左右
+  var sequenceDom = document.getElementById('sequence')
+  var inputDom = document.getElementById('textIn')
+
+  // getElementById相当于一条连线
+  // 下面的这个函数被调用的时候才会去拿输入框当时的值
+  function getInputValue () {
+    return inputDom.value
+  }
+  // 数字输入的合法性 ??
+  function isNum (str) {
+    return /^\d{1,8}$/.test(str)
+  }
+  function insertLeft () {
+    var inputValue = getInputValue()
+    if (isNum(inputValue)) {
+      var newSpan = document.createElement('span')
+      newSpan.innerHTML = inputValue
+      sequenceDom.insertBefore(newSpan, sequenceDom.children[0])
+    } else {
+      alert('请输入1到8位的数值')
+    }
+  }
+  // 没有和insertBefore对应的insertAfter方法，用appendChild
+  function insertRight () {
+    var inputValue = getInputValue()
+    if (isNum(inputValue)) {
+      var newSpan = document.createElement('span')
+      newSpan.innerHTML = inputValue
+      sequenceDom.appendChild(newSpan, sequenceDom)
+    } else {
+      alert('请输入1到8位的数值')
+    }
+  }
+  function removeLeft () {
+    // removeChild返回被删除的节点，非常人性化
+    alert('移除左侧数字：' + sequenceDom.removeChild(sequenceDom.children[0]).innerHTML)
+  }
+  function removeRight () {
+    var cLength = sequenceDom.children.length
+    // removeChild返回被删除的节点，非常人性化
+    alert('移除右侧数字：' + sequenceDom.removeChild(sequenceDom.children[cLength - 1]).innerHTML)
+  }
+
+  // 点击span元素也能删除它，必须用事件代理
+  addEvent(sequenceDom, 'click', function (e) {
+    console.log(e)
+    var target = e.target || e.srcElement
+    if (target && target.tagName === 'SPAN') {
+      sequenceDom.removeChild(target)
+    }
+    if (target && target.tagName === 'span') {
+      sequenceDom.removeChild(target)
+    }
+  })
+
+  // addEvent() polyfill
+  function addEvent (element, type, handler) {
+    if (!handler.$$guid) handler.$$guid = addEvent.guid++
+    if (!element.events) element.events = {}
+    var handlers = element.events[type]
+    if (!handlers) {
+      handlers = element.events[type] = {}
+      if (element['on' + type]) {
+        handlers[0] = element['on' + type]
+      }
+    }
+    handlers[handler.$$guid] = handler
+    element['on' + type] = handleEvent
+  }
+  addEvent.guid = 1
+
+  function removeEvent (element, type, handler) {
+    if (element.events && element.events[type]) {
+      delete element.events[type][handler.$$guid]
+    }
+  }
+
+  function handleEvent (event) {
+    var returnValue = true
+    event = event || fixEvent(window.event)
+    var handlers = this.events[event.type]
+    for (var i in handlers) {
+      this.$$handleEvent = handlers[i]
+      if (this.$$handleEvent(event) === false) {
+        returnValue = false
+      }
+    }
+    return returnValue
+  }
+
+  function fixEvent (event) {
+    event.preventDefault = fixEvent.preventDefault
+    event.stopPropagation = fixEvent.stopPropagation
+    return event
+  }
+  fixEvent.preventDefault = function () {
+    this.returnValue = false
+  }
+  fixEvent.stopPropagation = function () {
+    this.cancelBubble = true
+  }
+</script>
+</body>
+</html>
