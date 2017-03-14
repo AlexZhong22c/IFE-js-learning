@@ -2,23 +2,24 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>IFE JavaScript Task 04</title>
+    <title>IFE JavaScript Task 05</title>
     <style type="text/css">
-      button {
-          cursor:pointer;
-      }
-      #sequence {
-        margin-top:20px;
+    #sequence {
+        margin-top: 120px;
         font-size: 18px;
-      }
-      #sequence span {
-        /*width: 10px;*/
-        /*height: 10px;*/
-        padding: 10px 10px;
+        transform: rotateX(180deg);
+    }
+    #sequence div {
+        position: relative;
+        float: left;
         background-color: red;
-        margin-left:10px;
-        cursor:pointer;
-      }
+        margin-left: 10px;
+        cursor: pointer;
+        width: 20px;
+    }
+    button {
+        cursor: pointer;
+    }
     </style>
   </head>
 <body>
@@ -31,15 +32,16 @@
     <button onclick="removeRight()">右侧出</button>
     <!-- 操作下面的sequence时用到了chirdren,在ie6-ie8里面会包括评论节点 -->
     <div id="sequence">
-        <span>11</span>
-        <span>12</span>
-        <span>13</span>
+      <div style="height: 101px"></div>
+      <div style="height: 50px"></div>
+      <div style="height: 30px"></div>
     </div>
   </div>
 <script>
   'use strict';
   // 发现target不对劲，补了一个target = e.target || e.srcElement
-  // 兼容到ie5左右
+  // 从ie9开始，css无法令div翻转180度;而功能兼容到ie5左右
+  // 用正则表示10到100整数
   var sequenceDom = document.getElementById('sequence')
   var inputDom = document.getElementById('textIn')
 
@@ -48,49 +50,64 @@
   function getInputValue () {
     return inputDom.value
   }
-  // 数字输入的合法性 ??
-  function isNum (str) {
-    return /^\d{1,8}$/.test(str)
+  // 数字输入的合法性
+  function isValid (str) {
+    return /^(?:[1-9]\d|100)$/.test(str)
+  }
+  function isOverload (parentEle) {
+    return parentEle.children.length >= 15
   }
   function insertLeft () {
     var inputValue = getInputValue()
-    if (isNum(inputValue)) {
-      var newSpan = document.createElement('span')
-      newSpan.innerHTML = inputValue
-      sequenceDom.insertBefore(newSpan, sequenceDom.children[0])
+    if (!isValid(inputValue)) {
+      alert('请输入10到100的整数')
+    } else if (isOverload(sequenceDom)) {
+      alert('数据量将超过15，插入失败')
     } else {
-      alert('请输入1到8位的数值')
+      var newDiv = document.createElement('div')
+      newDiv.style.height = inputValue + "px"
+      if (sequenceDom.children.length === 0) {
+        sequenceDom.appendChild(newDiv)
+      } else {
+        sequenceDom.insertBefore(newDiv,
+            sequenceDom.children[0])
+      }
     }
   }
   // 没有和insertBefore对应的insertAfter方法，用appendChild
   function insertRight () {
     var inputValue = getInputValue()
-    if (isNum(inputValue)) {
-      var newSpan = document.createElement('span')
-      newSpan.innerHTML = inputValue
-      sequenceDom.appendChild(newSpan)
+    if (!isValid(inputValue)) {
+      alert('请输入10到100的整数')
+    } else if (isOverload(sequenceDom)) {
+      alert('数据量将超过15，插入失败')
     } else {
-      alert('请输入1到8位的数值')
+      var newDiv = document.createElement('div')
+      newDiv.style.height = inputValue + "px"
+      sequenceDom.appendChild(newDiv)
     }
   }
   function removeLeft () {
     // removeChild返回被删除的节点，非常人性化
-    alert('移除左侧数字：' + sequenceDom.removeChild(sequenceDom.children[0]).innerHTML)
+    var deletedOne = sequenceDom.removeChild(sequenceDom.children[0])
+    // 用正则拿出合理的数据:
+    // alert('移除左侧数据：' + /[1-9]\d*/.exec(deletedOne.getAttribute('style'))[0])
+    alert('移除左侧数据：' + deletedOne.style.height.replace('px', ''))
   }
   function removeRight () {
     var cLength = sequenceDom.children.length
     // removeChild返回被删除的节点，非常人性化
-    alert('移除右侧数字：' + sequenceDom.removeChild(sequenceDom.children[cLength - 1]).innerHTML)
+    var deletedOne = sequenceDom.removeChild(sequenceDom.children[cLength - 1])
+    alert('移除右侧数据：' + deletedOne.style.height.replace('px', ''))
   }
 
   // 点击span元素也能删除它，必须用事件代理
   addEvent(sequenceDom, 'click', function (e) {
-    console.log(e)
     var target = e.target || e.srcElement
-    if (target && target.tagName === 'SPAN') {
+    if (target && target.tagName === 'DIV') {
       sequenceDom.removeChild(target)
     }
-    if (target && target.tagName === 'span') {
+    if (target && target.tagName === 'div') {
       sequenceDom.removeChild(target)
     }
   })
