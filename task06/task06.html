@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>IFE JavaScript Task 06</title>
+    <style type="text/css">
+      button {
+          cursor:pointer;
+      }
+      #sequence {
+        margin-top:20px;
+        font-size: 18px;
+      }
+      #sequence span {
+        /*width: 10px;*/
+        /*height: 10px;*/
+        padding: 10px 10px;
+        background-color: red;
+        margin-left:10px;
+        cursor:pointer;
+      }
+    </style>
+  </head>
+<body>
+  <div>
+    <textarea id="textIn" style="width:400px;height:100px;"></textarea>
+    <button onclick="insertLeft()">左侧入</button>
+    <button onclick="insertRight()">右侧入</button>
+    &nbsp;&nbsp;&nbsp;&nbsp;
+    <button onclick="removeLeft()">左侧出</button>
+    <button onclick="removeRight()">右侧出</button>
+    <br/>
+    <input type="text" id="search-input"/>
+    <button onclick="search()">查询</button>
+    <button onclick="reset()">重置查询</button>
+    <!-- 操作下面的sequence时用到了chirdren,在ie6-ie8里面会包括评论节点 -->
+    <div id="sequence">
+        <span>11</span>
+        <span>12</span>
+        <span>13</span>
+    </div>
+  </div>
+<script>
+  'use strict';
+  // 发现target不对劲，补了一个target = e.target || e.srcElement
+  // use .createDocumentFragment
+  // 因为对 模糊匹配 的概念不是很懂，暂时没有做模糊匹配；不过如果一个字段包括了要查询的字段，它依然能被查出来，indexOf()的功能还是不错的
+  // 一定还有更简单的方法，因为遍历查找的次数太多了
+  // 兼容到 ie5左右
+
+  // Polyfill
+  // Production steps of ECMA-262, Edition 5, 15.4.4.14
+  // Reference: http://es5.github.io/#x15.4.4.14
+  if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement, fromIndex) {
+      var k
+      // 1. Let O be the result of calling ToObject passing
+      //    the this value as the argument.
+      if (this == null) {
+        throw new TypeError('"this" is null or not defined')
+      }
+
+      var O = Object(this)
+
+      // 2. Let lenValue be the result of calling the Get
+      //    internal method of O with the argument "length".
+      // 3. Let len be ToUint32(lenValue).
+      var len = O.length >>> 0
+
+      // 4. If len is 0, return -1.
+      if (len === 0) {
+        return -1
+      }
+
+      // 5. If argument fromIndex was passed let n be
+      //    ToInteger(fromIndex); else let n be 0.
+      var n = +fromIndex || 0
+
+      if (Math.abs(n) === Infinity) {
+        n = 0
+      }
+
+      // 6. If n >= len, return -1.
+      if (n >= len) {
+        return -1
+      }
+
+      // 7. If n >= 0, then Let k be n.
+      // 8. Else, n<0, Let k be len - abs(n).
+      //    If k is less than 0, then let k be 0.
+      k = Math.max(n >= 0 ? n : len - Math.abs(n), 0)
+
+      // 9. Repeat, while k < len
+      while (k < len) {
+        // a. Let Pk be ToString(k).
+        //   This is implicit for LHS operands of the in operator
+        // b. Let kPresent be the result of calling the
+        //    HasProperty internal method of O with argument Pk.
+        //   This step can be combined with c
+        // c. If kPresent is true, then
+        //    i.  Let elementK be the result of calling the Get
+        //        internal method of O with the argument ToString(k).
+        //   ii.  Let same be the result of applying the
+        //        Strict Equality Comparison Algorithm to
+        //        searchElement and elementK.
+        //  iii.  If same is true, return k.
+        if (k in O && O[k] === searchElement) {
+          return k
+        }
+        k++
+      }
+      return -1
+    }
+  }
+  var sequenceDom = document.getElementById('sequence')
+  var inputDom = document.getElementById('textIn')
+  var searchInput = document.getElementById('search-input')
+
+  // getElementById相当于一条连线
+  // 下面的这个函数被调用的时候才会去拿输入框当时的值
+  function getInputValue () {
+    // 支持逗号，分号，空格，顿号等
+    var valueArr = inputDom.value.split(/[,;、，；]|\s+/)
+    var resultArr = []
+    for (var i = 0; i < valueArr.length; i++) {
+      if (valueArr[i] === '') {
+        continue
+      }
+      resultArr.push(valueArr[i])
+    }
+    return resultArr.reverse()
+  }
+  function getSequenceDomValues () {
+    var result = []
+    var temp = sequenceDom.children
+    for (var i = 0; i < temp.length; i++) {
+      result.push(temp[i].innerHTML)
+    }
+    return result
+  }
+  function highlight (value) {
+    var temp = sequenceDom.children
+    for (var i = 0; i < temp.length; i++) {
+      if (temp[i].innerHTML === value) {
+        temp[i].style.backgroundColor = 'green'
+      }
+    }
+  }
+  function search () {
+    var keyvalue = searchInput.value
+    var sequences = getSequenceDomValues()
+    for (var j = 0; j < sequences.length; j++) {
+      if (sequences[j].indexOf(keyvalue) !== -1) {
+        highlight(sequences[j])
+      }
+    }
+  }
+  // reset
+  function reset () {
+    var temp = sequenceDom.children
+    for (var i = 0; i < temp.length; i++) {
+      temp[i].style.backgroundColor = 'red'
+    }
+  }
+
+  function insertLeft () {
+    var dataArr = getInputValue()
+    var oFragment = document.createDocumentFragment()
+    for (var i = 0; i < dataArr.length; i++) {
+      var span = document.createElement('span')
+      span.innerHTML = dataArr[i]
+      oFragment.appendChild(span)
+    }
+    sequenceDom.insertBefore(oFragment, sequenceDom.children[0])
+  }
+  // 没有和insertBefore对应的insertAfter方法，用appendChild
+  function insertRight () {
+    var dataArr = getInputValue()
+    var oFragment = document.createDocumentFragment()
+    for (var i = 0; i < dataArr.length; i++) {
+      var span = document.createElement('span')
+      span.innerHTML = dataArr[i]
+      oFragment.appendChild(span)
+    }
+    sequenceDom.appendChild(oFragment)
+  }
+  function removeLeft () {
+    // removeChild返回被删除的节点，非常人性化
+    alert('移除左侧数据：' + sequenceDom.removeChild(sequenceDom.children[0]).innerHTML)
+  }
+  function removeRight () {
+    var cLength = sequenceDom.children.length
+    // removeChild返回被删除的节点，非常人性化
+    alert('移除右侧数据：' + sequenceDom.removeChild(sequenceDom.children[cLength - 1]).innerHTML)
+  }
+
+  // 点击span元素也能删除它，必须用事件代理
+  addEvent(sequenceDom, 'click', function (e) {
+    console.log(e)
+    var target = e.target || e.srcElement
+    if (target && target.tagName === 'SPAN') {
+      sequenceDom.removeChild(target)
+    }
+    if (target && target.tagName === 'span') {
+      sequenceDom.removeChild(target)
+    }
+  })
+
+  // addEvent() polyfill
+  function addEvent (element, type, handler) {
+    if (!handler.$$guid) handler.$$guid = addEvent.guid++
+    if (!element.events) element.events = {}
+    var handlers = element.events[type]
+    if (!handlers) {
+      handlers = element.events[type] = {}
+      if (element['on' + type]) {
+        handlers[0] = element['on' + type]
+      }
+    }
+    handlers[handler.$$guid] = handler
+    element['on' + type] = handleEvent
+  }
+  addEvent.guid = 1
+
+  function removeEvent (element, type, handler) {
+    if (element.events && element.events[type]) {
+      delete element.events[type][handler.$$guid]
+    }
+  }
+
+  function handleEvent (event) {
+    var returnValue = true
+    event = event || fixEvent(window.event)
+    var handlers = this.events[event.type]
+    for (var i in handlers) {
+      this.$$handleEvent = handlers[i]
+      if (this.$$handleEvent(event) === false) {
+        returnValue = false
+      }
+    }
+    return returnValue
+  }
+
+  function fixEvent (event) {
+    event.preventDefault = fixEvent.preventDefault
+    event.stopPropagation = fixEvent.stopPropagation
+    return event
+  }
+  fixEvent.preventDefault = function () {
+    this.returnValue = false
+  }
+  fixEvent.stopPropagation = function () {
+    this.cancelBubble = true
+  }
+</script>
+</body>
+</html>
