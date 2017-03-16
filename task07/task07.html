@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>任务七：JavaScript和树（一）</title>
+    <style media="screen">
+    .bd {
+    width: 500px;
+    height: 100px;
+    background-color: antiquewhite;
+    display: flex;
+    padding: 20px;
+    }
+    .tree {
+    border: 1px red solid;
+    flex: 1;
+    margin: 8px;
+    display: flex;
+    background-color: antiquewhite;
+    }
+    </style>
+  </head>
+  <body>
+    <input type="button" name="" value="前序遍历" id='btn1'>
+    <input type="button" name="" value="中序遍历" id='btn2'>
+    <input type="button" name="" value="后序遍历" id='btn3'>
+    <br/>
+    <br/>
+    <div class="bd">
+      <div class="tree">0
+        <div class="tree">1
+          <div class="tree">2
+            <div class="tree">3
+            </div>
+            <div class="tree">4
+            </div>
+          </div>
+          <div class="tree">5
+            <div class="tree">6
+            </div>
+            <div class="tree">7
+            </div>
+          </div>
+        </div>
+        <div class="tree">8
+          <div class="tree">9
+            <div class="tree">10
+            </div>
+            <div class="tree">11
+            </div>
+          </div>
+          <div class="tree">12
+            <div class="tree">13
+            </div>
+            <div class="tree">14
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<script type="text/javascript">
+  // background-color: aquamarine;
+  window.onload = function () {
+    var tree = document.getElementsByClassName('tree')
+    var btn1 = document.getElementById('btn1')
+    var btn2 = document.getElementById('btn2')
+    var btn3 = document.getElementById('btn3')
+    var timer = []
+    // console.log(oDiv);
+    // oDiv[0].style.backgroundColor='blue';
+    /*
+    oDiv[1].style.backgroundColor='green';
+    oDiv[2].style.backgroundColor='red';
+    oDiv[3].style.backgroundColor='orange';
+    oDiv[4].style.backgroundColor='coral';
+    oDiv[5].style.backgroundColor='white';
+    */
+    // 用上面的方法方法观察，其实DOM遍历是有点像前序遍历的，好像老师说的观察可得(￣▽￣)~*
+    // 然后用填充的方式生成数组
+    // 前序遍历
+    // 这种事比较取巧的方式，中序遍历、后序遍历就必须要用到正规的数据结构与算法的思路了
+    var counter = 0
+    var isStart = false
+
+    function show (nodeList) {
+      nodeList[counter].style.backgroundColor = 'aquamarine'
+      var num = counter
+      counter++
+      timer[num] = setTimeout(function () {
+        nodeList[num].style.backgroundColor = 'antiquewhite'
+      }, 500)
+    }
+
+    function showFn (nodeList) {
+      show(nodeList)
+      if (counter < nodeList.length) {
+        setTimeout(function () {
+          showFn(nodeList)
+        }, 500)
+      } else {
+        counter = 0
+        isStart = false
+        setTimeout(() => {
+          alert('遍历结束')
+        }, 1000)
+      }
+    }
+
+    // 中序遍历
+    var main = document.getElementsByClassName('bd')
+    // 其实main就是前序遍历的结构，我在纸上推出二叉树的对象结构
+    var binaryTree = {
+      value: tree[0],
+      left: {
+        value: tree[1],
+        left: {
+          value: tree[2],
+          left: {
+            value: tree[3],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          },
+          right: {
+            value: tree[4],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          }
+        },
+        right: {
+          value: tree[5],
+          left: {
+            value: tree[6],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          },
+          right: {
+            value: tree[7],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          }
+        }
+      },
+      right: {
+        value: tree[8],
+        left: {
+          value: tree[9],
+          left: {
+            value: tree[10],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          },
+          right: {
+            value: tree[11],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          }
+        },
+        right: {
+          value: tree[12],
+          left: {
+            value: tree[13],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          },
+          right: {
+            value: tree[14],
+            left: {
+              value: null
+            },
+            right: {
+              value: null
+            }
+          }
+        }
+      }
+    }
+
+    function inListRec () {
+      var inListRec = [] // 定义保存中序遍历结果的数组
+      var inOrderRec = function (node) {
+        if (node) { // 判断二叉树是否为空
+          inOrderRec(node.left) // 递归遍历左子树
+          if (node.value) {
+            inListRec.push(node.value) // 将结点的值存入数组中
+          }
+          inOrderRec(node.right) // 递归遍历右子树
+        }
+      }
+      inOrderRec(binaryTree)
+      return inListRec
+    }
+
+    // 后序遍历
+    function postListRec () {
+      var postListRec = [] // 定义保存后序遍历结果的数组
+      var postOrderRec = function (node) {
+        if (node) { // 判断二叉树是否为空
+          postOrderRec(node.left) // 递归遍历左子树
+          postOrderRec(node.right) // 递归遍历右子树
+          if (node.value) {
+            postListRec.push(node.value) // 将结点的值存入数组中
+          }
+        }
+      }
+      postOrderRec(binaryTree)
+      return postListRec
+    }
+    btn1.addEventListener('click', function () {
+      if (!isStart) {
+        showFn(tree)
+        isStart = true
+      } else {
+        alert('动画运行中')
+      }
+    })
+    btn2.addEventListener('click', function () {
+      if (!isStart) {
+        // 排一下顺序
+        var nodeArr = inListRec()
+        // showFn()和isStart = true视为同时执行
+        showFn(nodeArr)
+        isStart = true
+      } else {
+        alert('动画运行中')
+      }
+    })
+    btn3.addEventListener('click', function () {
+      if (!isStart) {
+        var nodeArr = postListRec()
+        showFn(nodeArr)
+        isStart = true
+      } else {
+        alert('动画运行中')
+      }
+    })
+  }
+</script>
+  </body>
+</html>
