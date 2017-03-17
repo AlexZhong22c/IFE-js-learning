@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>任务二十二：JavaScript和树（一）</title>
+    </head>
+    <style>
+        div { border: 1px solid #000; box-sizing: border-box; padding: 20px 10px; background-color: #fff;}
+        #root { width: 600px;  height: 300px; margin: 100px auto 0;}
+        #root:before, #root:after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+        #root div {
+            float: left;
+            width: calc(50% - 10px);
+            height: 100%;
+            margin: 0 5px;
+        }
+        p { text-align: center; }
+    </style>
+<body>
+    <div id="root" data-test="1">
+        <div data-test="2">
+            <div data-test="4">
+                <div data-test="8"></div>
+                <div data-test="9"></div>
+            </div>
+            <div data-test="5">
+                <div data-test="10"></div>
+                <div data-test="11"></div>
+            </div>
+        </div>
+        <div data-test="3">
+            <div data-test="6">
+                <div data-test="12"></div>
+                <div data-test="13"></div>
+            </div>
+            <div data-test="7">
+                <div data-test="14"></div>
+                <div data-test="15"></div>
+            </div>
+        </div>
+    </div>
+    <p>
+        <button data-method="preOrder">前序</button>
+        <button data-method="inOrder">中序</button>
+        <button data-method="postOrder">后序</button>
+        <label for="time">时间间隔(default:200ms)：</label>
+        <input type="text" id="time" value="200">
+    </p>
+<script>
+// forEach's polyfill:
+// Production steps of ECMA-262, Edition 5, 15.4.4.18
+// Reference: http://es5.github.io/#x15.4.4.18
+if (!Array.prototype.forEach) {
+
+  Array.prototype.forEach = function(callback, thisArg) {
+
+    var T, k;
+
+    if (this == null) {
+      throw new TypeError(' this is null or not defined');
+    }
+
+    // 1. Let O be the result of calling toObject() passing the
+    // |this| value as the argument.
+    var O = Object(this);
+
+    // 2. Let lenValue be the result of calling the Get() internal
+    // method of O with the argument "length".
+    // 3. Let len be toUint32(lenValue).
+    var len = O.length >>> 0;
+
+    // 4. If isCallable(callback) is false, throw a TypeError exception. 
+    // See: http://es5.github.com/#x9.11
+    if (typeof callback !== "function") {
+      throw new TypeError(callback + ' is not a function');
+    }
+
+    // 5. If thisArg was supplied, let T be thisArg; else let
+    // T be undefined.
+    if (arguments.length > 1) {
+      T = thisArg;
+    }
+
+    // 6. Let k be 0
+    k = 0;
+
+    // 7. Repeat, while k < len
+    while (k < len) {
+
+      var kValue;
+
+      // a. Let Pk be ToString(k).
+      //    This is implicit for LHS operands of the in operator
+      // b. Let kPresent be the result of calling the HasProperty
+      //    internal method of O with argument Pk.
+      //    This step can be combined with c
+      // c. If kPresent is true, then
+      if (k in O) {
+
+        // i. Let kValue be the result of calling the Get internal
+        // method of O with argument Pk.
+        kValue = O[k];
+
+        // ii. Call the Call internal method of callback with T as
+        // the this value and argument list containing kValue, k, and O.
+        callback.call(T, kValue, k, O);
+      }
+      // d. Increase k by 1.
+      k++;
+    }
+    // 8. return undefined
+  };
+}
+function BinaryTree (root) {
+  this.root = root
+  this.isAnimating = false
+  this.animQueue = []
+}
+BinaryTree.prototype.animate = function () {
+  this.isAnimating = true
+  var arr = this.animQueue,
+    len = arr.length,
+    time = parseInt(document.getElementById('time').value, 10) || 200,
+    that = this,
+    count = 0;
+  var timer = setInterval(function () {
+    arr[Math.max(count - 1, 0)].style.backgroundColor = '#fff'
+    arr[Math.min(count, len - 1)].style.backgroundColor = '#09f'
+    count++
+    if (count > arr.length) {
+      clearInterval(timer)
+      that.animQueue = []
+      arr[len - 1].style.backgroundColor = '#fff'
+      that.isAnimating = false
+    }
+  }, time)
+}
+BinaryTree.prototype.preOrder = function (node) {
+  node = node || this.root
+  this.animQueue.push(node)
+  if (node.children[0]) {
+    this.preOrder(node.children[0])
+  }
+  if (node.children[node.children.length - 1]) {
+    this.preOrder(node.children[node.children.length - 1])
+  }
+}
+BinaryTree.prototype.inOrder = function (node) {
+  node = node || this.root
+  if (node.children[0]) {
+    this.inOrder(node.children[0])
+  }
+  this.animQueue.push(node)
+  if (node.children[1]) {
+    this.inOrder(node.children[1])
+  }
+}
+BinaryTree.prototype.postOrder = function (node) {
+  node = node || this.root
+  if (node.children[0]) {
+    this.postOrder(node.children[0])
+  }
+  if (node.children[1]) {
+    this.postOrder(node.children[1])
+  }
+  this.animQueue.push(node)
+}
+
+window.onload = function () {
+  var root = document.getElementById('root')
+  var btns = document.getElementsByTagName('button')
+  var tree = new BinaryTree(root)
+  Array.prototype.forEach.call(btns, function (item, index) {
+    addEvent(item, 'click', function () {
+      if (tree.isAnimating) {
+        alert('动画正在进行，请稍候再进行遍历操作！')
+      } else {
+        var method = item.getAttribute('data-method')
+        tree[method]()
+        tree.animate()
+      }
+    })
+  })
+}
+
+function addEvent (elem, event, func) {
+  if (elem.addEventListener) {
+    elem.addEventListener(event, func, false)
+  } else if (elem.attachEvent) {
+    elem.attachEvent('on' + event, func)
+  }
+}
+</script>
+</body>
+</html>
