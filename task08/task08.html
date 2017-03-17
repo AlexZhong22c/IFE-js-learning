@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>任务二十三：JavaScript和树（二）</title>
+    </head>
+    <style>
+        div { border: 1px solid #000; box-sizing: border-box; background-color: #fff;}
+        #root { width: 1140px; height: 200px; margin: 100px auto 0; line-height: 198px;}
+        #root div {
+            display: inline-block;
+            padding: 0 3px;
+            height: calc(100% - 20px);
+        }
+        #root > div {
+            line-height: 176px;
+        }
+        #root > div > div {
+            line-height: 154px;
+        }
+        #root > div > div > div {
+            line-height: 132px;
+        }
+        #root > div > div > div > div {
+            line-height: 110px;
+        }
+        p { text-align: center; }
+    </style>
+<body>
+    <div id="root">Super
+        <div>Co
+            <div>Apple
+                <div>Pear</div>
+                <div>Pig</div>
+                <div>Cola</div>
+                <div>Soccer</div>
+            </div>
+            <div>Phone</div>
+            <div>Study
+                <div>Book</div>
+                <div>School</div>
+            </div>
+        </div>
+        <div>Note
+            <div>Human
+                <div>Code</div>
+                <div>Super</div>
+                <div>Man</div>
+            </div>
+            <div>Program
+                <div>Element
+                    <div>Cat</div>
+                </div>
+                <div>Class</div>
+            </div>
+        </div>
+        <div>Fish</div>
+    </div>
+    <p>
+        <button data-method="bft">广度优先遍历</button>
+        <button data-method="dft">深度优先遍历</button>
+    </p>
+    <p>
+        <label for="time">搜索(精确匹配)：</label>
+        <input type="text" id="search" placeholder="输入要搜索的值">
+        <button data-method="bfs">广度优先搜索</button>
+        <button data-method="dfs">深度优先搜索</button>
+    </p>
+    <p>
+        <label for="time">动画时间间隔(default:200ms)：</label>
+        <input type="text" id="time" value="200">
+    </p>
+<script>
+// forEach's polyfill:
+// Production steps of ECMA-262, Edition 5, 15.4.4.18
+// Reference: http://es5.github.io/#x15.4.4.18
+if (!Array.prototype.forEach) {
+
+  Array.prototype.forEach = function(callback, thisArg) {
+
+    var T, k;
+
+    if (this == null) {
+      throw new TypeError(' this is null or not defined');
+    }
+
+    // 1. Let O be the result of calling toObject() passing the
+    // |this| value as the argument.
+    var O = Object(this);
+
+    // 2. Let lenValue be the result of calling the Get() internal
+    // method of O with the argument "length".
+    // 3. Let len be toUint32(lenValue).
+    var len = O.length >>> 0;
+
+    // 4. If isCallable(callback) is false, throw a TypeError exception. 
+    // See: http://es5.github.com/#x9.11
+    if (typeof callback !== "function") {
+      throw new TypeError(callback + ' is not a function');
+    }
+
+    // 5. If thisArg was supplied, let T be thisArg; else let
+    // T be undefined.
+    if (arguments.length > 1) {
+      T = thisArg;
+    }
+
+    // 6. Let k be 0
+    k = 0;
+
+    // 7. Repeat, while k < len
+    while (k < len) {
+
+      var kValue;
+
+      // a. Let Pk be ToString(k).
+      //    This is implicit for LHS operands of the in operator
+      // b. Let kPresent be the result of calling the HasProperty
+      //    internal method of O with argument Pk.
+      //    This step can be combined with c
+      // c. If kPresent is true, then
+      if (k in O) {
+
+        // i. Let kValue be the result of calling the Get internal
+        // method of O with argument Pk.
+        kValue = O[k];
+
+        // ii. Call the Call internal method of callback with T as
+        // the this value and argument list containing kValue, k, and O.
+        callback.call(T, kValue, k, O);
+      }
+      // d. Increase k by 1.
+      k++;
+    }
+    // 8. return undefined
+  };
+}
+function BinaryTree (node) {
+  this.root = node
+  this.isAnimating = false
+  this.animQueue = []
+  this.matched = {}
+  this.searched = false
+}
+BinaryTree.prototype.bft = function () {  // breadthFirstTraverse 广度优先遍历
+  var assistQueue = []
+  assistQueue.push(this.root)
+  while (assistQueue.length) {
+    node = assistQueue.shift()
+    for (var i = 0, len = node.children.length; i < len; i++) {
+      assistQueue.push(node.children[i])
+    }
+    this.animQueue.push(node)
+  }
+}
+BinaryTree.prototype.dft = function (node) {  // depthFirstTraverse 深度优先遍历
+  node = node || this.root
+  this.animQueue.push(node)
+  if (node.children.length) {
+    for (var i = 0, len = node.children.length; i < len; i++) {
+      this.dft(node.children[i])
+    }
+  }
+}
+BinaryTree.prototype.bfs = function () {  // breadthFirstSearch 广度优先搜索
+  var searchValue = trim(document.getElementById('search').value)
+  if (searchValue === '') {
+    alert('请输入查询字符串')
+    return false
+  }
+  this.bft()
+  this.search(searchValue)
+}
+BinaryTree.prototype.dfs = function () {  // depthFirstSearch 深度优先搜索
+  var searchValue = trim(document.getElementById('search').value)
+  if (searchValue === '') {
+    alert('请输入查询字符串')
+    return false
+  }
+  this.dft()
+  this.search(searchValue)
+}
+BinaryTree.prototype.search = function (value) {
+  var start = 0
+  var tmpArr = this.animQueue
+  var resultArr = []
+  this.matched.length = 0
+  this.searched = true
+  for (var i = 0, len = tmpArr.length; i < len; i++) {
+    var j = 0
+    while (tmpArr[i].childNodes[j++].nodeType !== 3);
+    resultArr[i] = trim(tmpArr[i].childNodes[j - 1].textContent)
+  }
+  while (resultArr.indexOf(value, start) !== -1) {
+    this.matched[resultArr.indexOf(value, start)] = true
+    this.matched.length++
+    start = resultArr.indexOf(value, start) + 1
+  }
+}
+BinaryTree.prototype.animate = function () {
+  if (this.animQueue.length === 0) return false
+  this.isAnimating = true
+  var arr = this.animQueue,
+    matchedObj = this.matched,
+    len = arr.length,
+    time = parseInt(document.getElementById('time').value, 10) || 200,
+    that = this,
+    count = 0;
+
+  var timer = setInterval(function () {
+    if (!that.searched || !matchedObj[Math.max(count - 1, 0)]) {
+      arr[Math.max(count - 1, 0)].style.backgroundColor = '#fff'
+    } else {
+      arr[Math.max(count - 1, 0)].style.backgroundColor = '#00f'
+    }
+    arr[Math.min(count, len - 1)].style.backgroundColor = '#09f'
+    count++
+    if (count > len) {
+      clearInterval(timer)
+      that.isAnimating = false
+      if (!that.searched || !matchedObj[Math.max(count - 1, 0)]) {
+        arr[len - 1].style.backgroundColor = '#fff'
+      }
+      if (that.searched && matchedObj.length === 0) {
+        alert('没有查询到对应节点')
+      }
+    }
+  }, time)
+}
+BinaryTree.prototype.init = function () {
+  for (var i in this.matched) {
+    if (i !== 'length') {
+      this.animQueue[i].style.backgroundColor = '#fff'
+    }
+  }
+  this.animQueue = []
+  this.matched = {}
+  this.searched = false
+}
+function addEvent (elem, event, func) {
+  if (elem.addEventListener) {
+    elem.addEventListener(event, func, false)
+  } else if (elem.attachEvent) {
+    elem.attachEvent('on' + event, func)
+  }
+}
+function trim (str) {
+    // \uFEFF是utf8的字节序标记，"\xA0"是全角空格
+  return str.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
+}
+window.onload = function () {
+  var root = document.getElementById('root')
+  var tree = new BinaryTree(root)
+  var btns = document.getElementsByTagName('button')
+  Array.prototype.forEach.call(btns, function (item, index) {
+    addEvent(item, 'click', function () {
+      if (tree.isAnimating) {
+        alert('动画正在进行，请稍候再进行遍历操作！')
+      } else {
+        var method = item.getAttribute('data-method')
+        tree.init()
+        tree[method]()
+        tree.animate()
+      }
+    })
+  })
+}
+</script>
+</body>
+</html>
